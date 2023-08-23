@@ -1,0 +1,214 @@
+Clean data in R
+
+
+install.packages("tidyverse")
+install.packages("dplyr")
+install.packages("lubridate")
+install.packages("here")
+install.packages("skimr")
+install.packages("geosphere")
+library(tidyverse)
+library(dplyr)
+library(janitor)
+library(here)
+library(skimr)
+library(tidyr)
+library(readr)
+
+#### Import Annual Cyclist DATA
+
+df <- read.csv("CYCLIST/202206-divvy-tripdata.csv")
+df1 <- read.csv("CYCLIST/202207-divvy-tripdata.csv")
+df2 <- read.csv("CYCLIST/202208-divvy-tripdata.csv")
+df3 <- read.csv("CYCLIST/202209-divvy-tripdata.csv")
+df4 <- read.csv("CYCLIST/202210-divvy-tripdata.csv")
+df5 <- read.csv("CYCLIST/202211-divvy-tripdata.csv")
+df6 <- read.csv("CYCLIST/202212-divvy-tripdata.csv")
+df7 <- read.csv("CYCLIST/202301-divvy-tripdata.csv")
+df8 <- read.csv("CYCLIST/202302-divvy-tripdata.csv")
+df9 <- read.csv("CYCLIST/202303-divvy-tripdata.csv")
+df10 <- read.csv("CYCLIST/202304-divvy-tripdata.csv")
+df11 <- read.csv("CYCLIST/202305-divvy-tripdata.csv")
+df12 <- read.csv("CYCLIST/202306-divvy-tripdata.csv")
+
+#### Combine Annual Cyclist DATA into 'cyclist_df'
+
+cyclist_df <- rbind(df,df1,df2,df3,df4,df5,df6,df7,df8,df9,df10,df11,df12)
+
+### Create new data frame for updates
+cyclist_df_update <- cyclist_df
+
+
+### Review data
+head(cyclist_df)
+summary(cyclist_df_update)
+skim_without_charts(cyclist_df_update) ### Check for missing values/empty values
+glimpse(cyclist_df_update)
+View(cyclist_df_update)
+
+### Change char to Posixlt to performm calculations
+cyclist_df_update$started_at <- as.POSIXct(cyclist_df_update$started_at, format = "%Y-%m-%d %H:%M:%S")
+cyclist_df_update$ended_at <- as.POSIXct(cyclist_df_update$ended_at, format = "%Y-%m-%d %H:%M:%S")
+
+##### Create column ride length
+cyclist_df_update$ride_length <- difftime(cyclist_df_update$ended_at, cyclist_df_update$started_at)
+
+### View what we got so far
+View(cyclist_df_update)
+
+##### Delete NA columns and summary
+cyclist_df_update <- na.omit(cyclist_df_update)
+
+summary(cyclist_df_update)
+
+### Format Date to YYYY:MM:DD, Create seperate column for HH:MM 
+### Create new columns (Day of Week, number of week, name/number of month, split day to Morning,Afternoon,Night 
+### to Winter, Spring, Summer, Fall)and month
+
+### Format Date to YYYY:MM:DD, Splitted Date into new columns
+### (day_name - Name of the day
+### week_day - Number of the week
+### month - Number of the month
+### month name - Name of the month
+### Day - Number of the day
+### Time - In format HH:MM)
+
+cyclist_df_update$week_day <- wday(cyclist$date)
+cyclist_df_update$day_name <- format(as.Date(cyclist$date), "%A")
+cyclist_df_update$month <- format(as.Date(cyclist$date), "%m")
+cyclist_df_update$month_name <- format(as.Date(cyclist$date), "%b")
+cyclist_df_update$day <- format(as.Date(cyclist$date), "%d")
+cyclist_df_update$time <- format(as_datetime(cyclist$started_at), "%H:%M")
+
+cyclist_df_update$time <- as.character(cyclist$started_at)
+
+### View of Dataset + Rename month to month_name
+glimpse(cyclist_df_update)
+cyclist_df_update <- cyclist_df_update %>% 
+  rename(month = month_name)
+
+### Create new column for Season and time of day
+
+cyclist_df_update <- cyclist_df_update %>% 
+  mutate(season = 
+           case_when(month_name == "01" ~ "Winter",
+                     month_name == "02" ~ "Winter",
+                     month_name == "03" ~ "Spring",
+                     month_name == "04" ~ "Spring",
+                     month_name == "05" ~ "Spring",
+                     month_name == "06" ~ "Summer",
+                     month_name == "07" ~ "Summer",
+                     month_name == "08" ~ "Summer",
+                     month_name == "09" ~ "Fall",
+                     month_name == "10" ~ "Fall",
+                     month_name == "11" ~ "Fall",
+                     month_name == "12" ~ "Winter")
+  )
+
+cyclist_df_update <- cyclist_df_update %>% 
+  mutate (part_of_day = case_when(time == "01" ~ "Night",
+                                  time == "02" ~ "Night",
+                                  time == "03" ~ "Night",
+                                  time == "04" ~ "Night",
+                                  time == "05" ~ "Night",
+                                  time == "06" ~ "Morning",
+                                  time == "07" ~ "Morning",
+                                  time == "08" ~ "Morning",
+                                  time == "09" ~ "Morning",
+                                  time == "10" ~ "Morning",
+                                  time == "11" ~ "Morning",
+                                  time == "12" ~ "Afternoon",
+                                  time == "13" ~ "Afternoon",
+                                  time == "14" ~ "Afternoon",
+                                  time == "15" ~ "Afternoon",
+                                  time == "16" ~ "Afternoon",
+                                  time == "17" ~ "Afternoon",
+                                  time == "18" ~ "Evening",
+                                  time == "19" ~ "Evening",
+                                  time == "20" ~ "Evening",
+                                  time == "21" ~ "Evening",
+                                  time == "22" ~ "Evening",
+                                  time == "23" ~ "Night"))
+### Create column ride_distance for calculations
+
+cyclist_df_update$ride_distance <- distGeo(matrix(c(cyclist_df_update$start_lng, cyclist_df_update$start_lat), ncol = 2),
+                                           matrix(c(cyclist_df_update$end_lng, cyclist_df_update$end_lat), ncol = 2)) 
+View(cyclist)
+#### convert to ride_distance to KM
+cyclist_df_update$ride_distance <- cyclist_df_update$ride_distance/1000 
+View(cyclist_df_update)
+
+### Rename column
+cyclist_df_update <- cyclist_df_update %>%  rename(day = part_day)
+
+### Remove NA
+cyclist_df_update <- cyclist_df_update %>% 
+  na.omit()
+View(cyclist_df_update)
+
+#### Check for dupilicates
+cyclist_df_update <- cyclist_df_update %>% 
+  n_distinct()
+
+### Change ride_length to numeric for calculations.
+
+cyclist_df_update$ride_length <- as.numeric(as.character(cyclist_df_update$ride_length))
+is.numeric(cyclist_df_update$ride_length)
+
+cyclist_df_update$month <- as.numeric(as.character(cyclist_df_update$month))
+cyclist_df_update$day <- as.numeric(as.character(cyclist_df_update$day))
+cyclist_df_update$ride_length <- as.numeric(as.character(cyclist_df_update$ride_length))
+
+is.character(cyclist_df_update$time)
+### Remove all ride length <=0 and summary
+
+cyclist_df_update <- cyclist_df_update[!(cyclist_df_update$ride_length<=0),]
+summary(cyclist_df_update)
+
+### View and Remove columns we dont need
+colnames(cyclist_df_update)
+
+cyclist_df_update <- cyclist_df_update %>% select(-ride_id, -started_at, -ended_at, -start_station_name ,
+                                                  -start_station_id, -end_station_name, -end_station_id
+                                                  -start_lat,-start_lng,-end_lat,-end_lng)
+
+
+View(cyclist_df_update)
+summary(cyclist_df_update)
+
+### Export Data Next step - Visualizations in Tableau
+
+write_csv(cyclist_df_update, "/Users/Lenovo/Documents/R/cyclist.csv")
+
+
+
+cyclist_temp <- cyclist_df_update %>% 
+  select(rideable_type, ride_length) %>% 
+filter(rideable_type == "docked_bike")
+
+
+cyclist_temp2 <- cyclist_df_update %>% 
+  select(rideable_type, ride_length, member_casual) %>% 
+  filter(rideable_type == "classic_bike") %>% 
+  filter(member_casual == "casual")
+
+
+View(cyclist_temp1)
+
+cyclist_temp <- cyclist_temp %>% 
+  na.omit()
+
+cyclist$ride_length <- as.numeric(as.character(cyclist_df_update$ride_length))
+
+cyclist_temp %>% 
+  summarise(cyclist_temp$ride_length, my_mean = mean(cyclist_temp$ride_length, na.rm = TRUE))
+)
+
+datanew <- cyclist_temp %>% 
+  rowMeans(cyclist_temp[ride_length[,c(2)], na.rm=TRUE)
+
+mean(cyclist_temp$ride_length, na.rm = TRUE)
+
+mean(cyclist_temp2$ride_length, na.rm = TRUE)
+
+View(cyclist_temp2)
