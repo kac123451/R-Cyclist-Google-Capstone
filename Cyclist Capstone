@@ -181,34 +181,3 @@ summary(cyclist_df_update)
 write_csv(cyclist_df_update, "/Users/Lenovo/Documents/R/cyclist.csv")
 
 
-
-cyclist_temp <- cyclist_df_update %>% 
-  select(rideable_type, ride_length) %>% 
-filter(rideable_type == "docked_bike")
-
-
-cyclist_temp2 <- cyclist_df_update %>% 
-  select(rideable_type, ride_length, member_casual) %>% 
-  filter(rideable_type == "classic_bike") %>% 
-  filter(member_casual == "casual")
-
-
-View(cyclist_temp1)
-
-cyclist_temp <- cyclist_temp %>% 
-  na.omit()
-
-cyclist$ride_length <- as.numeric(as.character(cyclist_df_update$ride_length))
-
-cyclist_temp %>% 
-  summarise(cyclist_temp$ride_length, my_mean = mean(cyclist_temp$ride_length, na.rm = TRUE))
-)
-
-datanew <- cyclist_temp %>% 
-  rowMeans(cyclist_temp[ride_length[,c(2)], na.rm=TRUE)
-
-mean(cyclist_temp$ride_length, na.rm = TRUE)
-
-mean(cyclist_temp2$ride_length, na.rm = TRUE)
-
-View(cyclist_temp2)
