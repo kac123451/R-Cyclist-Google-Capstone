@@ -1,5 +1,7 @@
 # Cyclist Bike Share Data Analysis Project
 
+![](screen.jpg)
+
 ## Ask
 ### Problem Statement
 Cyclistic Bike Share, a bike-sharing company, wants to better understand how its customers, specifically annual members and casual riders, are using its services.
@@ -21,14 +23,13 @@ R Programming Language
 Tableau for Data Visualization
 
 ## Process
+
 ##### Data Cleaning - The data underwent cleaning process including:
 
- *Handling missing values
+* Handling missing values
 * Formatting date and time columns
 * Calculating ride length and distance
 * Filtering and categorizing data
-
-## Analysis
 
 ##### R code: [GitHub](https://github.com/kac123451/R-Cyclist-Google-Capstone/blob/main/Cyclist%20Capstone)
 
