@@ -2,18 +2,13 @@ Clean data in R
 
 
 install.packages("tidyverse")
-install.packages("dplyr")
 install.packages("lubridate")
 install.packages("here")
 install.packages("skimr")
-install.packages("geosphere")
 library(tidyverse)
-library(dplyr)
-library(janitor)
+library(lubridate)
 library(here)
 library(skimr)
-library(tidyr)
-library(readr)
 
 #### Import Annual Cyclist DATA
 
